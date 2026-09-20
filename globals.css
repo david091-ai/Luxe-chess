@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #090a0c;
+  --panel: rgba(20, 21, 24, .82);
+  --panel-2: rgba(28, 29, 34, .78);
+  --line: rgba(255,255,255,.09);
+  --gold: #d7b46a;
+  --gold-2: #f1d596;
+  --text: #f7f4ed;
+  --muted: #a9a6a0;
+  --light-square: #ead9ad;
+  --dark-square: #6b4e2e;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(215,180,106,.09), transparent 28rem),
+    radial-gradient(circle at 100% 100%, rgba(92,122,112,.10), transparent 32rem),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+button { font: inherit; }
+button:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
+.luxe-shell { min-height: 100vh; }
+.glass {
+  background: linear-gradient(145deg, rgba(255,255,255,.065), rgba(255,255,255,.018));
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 55px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter: blur(18px);
+}
+.gold-text {
+  background: linear-gradient(110deg, #b98b3f, #f7dfa0 45%, #b98b3f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.board-wrap {
+  width: min(82vh, 760px, 92vw);
+  aspect-ratio: 1;
+  border-radius: 18px;
+  padding: 10px;
+  background: linear-gradient(145deg, #5d4526, #d8bb76 35%, #6a4c28 65%, #17120c);
+  box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  touch-action: manipulation;
+}
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: filter .15s ease, transform .12s ease;
+}
+.square:hover { filter: brightness(1.06); }
+.piece {
+  font-family: "DejaVu Sans", "Noto Sans Symbols 2", serif;
+  font-size: clamp(2rem, 7.2vmin, 4.8rem);
+  line-height: 1;
+  transform: translateY(-1%);
+  transition: transform .14s ease, filter .14s ease;
+  pointer-events: none;
+}
+.square:active .piece { transform: scale(.96); }
+.coord {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  opacity: .72;
+  pointer-events: none;
+}
+.rank { top: 4px; left: 5px; }
+.file { right: 5px; bottom: 4px; }
+.status-pill {
+  border: 1px solid rgba(215,180,106,.24);
+  background: rgba(215,180,106,.08);
+  color: #efd99e;
+}
+.scroll-thin::-webkit-scrollbar { width: 5px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.13); border-radius: 10px; }
+@media (max-width: 900px) {
+  .board-wrap { width: min(94vw, 720px); }
+}
+@media (max-width: 640px) {
+  .board-wrap { padding: 6px; border-radius: 12px; }
+  .piece { font-size: clamp(1.8rem, 11vw, 3.7rem); }
+}
