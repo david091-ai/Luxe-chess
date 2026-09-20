@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LUXE CHESS — Premium Offline Chess</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<style>
+:root{
+  --bg:#0A0C11;
+  --bg-2:#0E1117;
+  --panel:#12151D;
+  --panel-2:#171B25;
+  --hairline:rgba(201,164,76,0.18);
+  --hairline-soft:rgba(255,255,255,0.06);
+  --gold:#C9A44C;
+  --gold-bright:#E4C877;
+  --emerald:#2E8B57;
+  --ruby:#B0223B;
+  --text:#EDE8DC;
+  --text-dim:#9A9CA6;
+  --text-faint:#5B5E6B;
+  --sq-light:#F0DFC0;
+  --sq-dark:#8B6A2E;
+  --board-accent:#D4AF37;
+  --pc-white:#FFF6DD;
+  --pc-white-glow:#D4AF37;
+  --pc-black:#2B2109;
+  --pc-black-glow:#9C7A1E;
+  --radius-l:18px;
+  --radius-m:12px;
+  --radius-s:8px;
+  --font-display:'Playfair Display', Georgia, serif;
+  --font-body:'Inter', -apple-system, system-ui, sans-serif;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse at 20% -10%, rgba(201,164,76,0.08), transparent 45%),
+    radial-gradient(ellipse at 100% 110%, rgba(46,139,87,0.06), transparent 40%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100%;
+  padding-top:var(--safe-t);
+  padding-bottom:var(--safe-b);
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:8px;}
+
+.screen{display:none; min-height:100vh; min-height:100%;}
+.screen.active{display:block;}
+
+/* ---------- HOME ---------- */
+#screen-home{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:48px 20px 40px;
+  text-align:center;
+}
+#screen-home.active{display:flex;}
+.crest{
+  font-size:44px;
+  color:var(--gold);
+  text-shadow:0 0 24px rgba(201,164,76,0.45);
+  margin-bottom:6px;
+}
+.wordmark{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(34px,7vw,52px);
+  letter-spacing:0.06em;
+  margin:0;
+  background:linear-gradient(180deg,#F3E3B0,var(--gold) 60%,#8a6d2e);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.tagline{
+  color:var(--text-dim);
+  font-size:14px;
+  letter-spacing:0.16em;
+  margin:6px 0 40px;
+  font-weight:500;
+}
+.menu{
+  width:100%;
+  max-width:360px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.menu-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 20px;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--hairline);
+  border-radius:var(--radius-m);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15.5px;
+  font-weight:600;
+  letter-spacing:0.01em;
+  cursor:pointer;
+  transition:border-color .18s ease, transform .12s ease, background .18s ease;
+  text-align:left;
+}
+.menu-btn .ic{font-size:18px;color:var(--gold);width:22px;text-align:center;}
+.menu-btn .arrow{color:var(--text-faint);font-size:14px;transition:transform .18s ease;}
+.menu-btn:hover{border-color:var(--gold);}
+.menu-btn:active{transform:scale(0.985);}
+.menu-btn.primary{
+  background:linear-gradient(180deg,#2a2210,#1b1608);
+  border:1px solid var(--gold);
+}
+.menu-btn.primary .arrow{color:var(--gold);}
+.menu-btn[disabled]{opacity:0.4; pointer-events:none;}
+.home-foot{margin-top:36px;color:var(--text-faint);font-size:11.5px;letter-spacing:0.12em;}
+
+/* ---------- TOPBAR (subscreens) ---------- */
+.topbar{
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:12px;
+  padding:calc(14px + var(--safe-t)) 18px 14px;
+  background:rgba(10,12,17,0.86);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hairline-soft);
+}
+.back-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--hairline);
+  background:var(--panel);
+  color:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer; flex:0 0 auto; font-size:16px;
+}
+.topbar h2{
+  font-family:var(--font-display);
+  font-weight:600; font-size:19px; margin:0;
+  letter-spacing:0.02em;
+}
+.topbar .sub{color:var(--text-faint); font-size:12px; margin-left:auto;}
+
+.page-pad{padding:18px 18px 40px; max-width:1100px; margin:0 auto;}
+
+/* ---------- GALLERY GRIDS ---------- */
+.gallery-grid{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:16px;
+}
+@media(min-width:640px){.gallery-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:960px){.gallery-grid{grid-template-columns:repeat(4,1fr);}}
+.swatch-card{
+  border:1px solid var(--hairline); border-radius:var(--radius-m);
+  padding:12px; cursor:pointer; background:var(--panel);
+  transition:border-color .15s ease, transform .12s ease;
+  position:relative;
+}
+.swatch-card:active{transform:scale(0.98);}
+.swatch-card.selected{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+.swatch-card.selected::after{
+  content:'✓'; position:absolute; top:8px; right:8px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold); color:#141414; font-size:11px; font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.swatch-board{
+  display:grid; grid-template-columns:repeat(4,1fr); border-radius:6px; overflow:hidden;
+  aspect-ratio:1; margin-bottom:8px; border:1px solid rgba(0,0,0,0.35);
+}
+.swatch-board div:nth-child(odd){background:var(--c-light);}
+.swatch-board div:nth-child(even){background:var(--c-dark);}
+.swatch-board div:nth-child(4n+1),.swatch-board div:nth-child(4n+4){background:var(--c-light);}
+.swatch-board div:nth-child(4n+2),.swatch-board div:nth-child(4n+3){background:var(--c-dark);}
+.swatch-name{font-size:12.5px; font-weight:600; color:var(--text);}
+
+.piece-card{
+  border:1px solid var(--hairline); border-radius:var(--radius-m);
+  padding:10px; cursor:pointer; background:var(--panel); text-align:center;
+  transition:border-color .15s ease, transform .12s ease; position:relative;
+}
+.piece-card:active{transform:scale(0.98);}
+.piece-card.selected{border-color:var(--gold);}
+.piece-card.selected::after{
+  content:'✓'; position:absolute; top:8px; right:8px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold); color:#141414; font-size:11px; font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.piece-preview{font-size:20px; line-height:1.3; letter-spacing:2px;}
+.piece-preview .pw{color:var(--pw-c); text-shadow:0 0 8px var(--pw-g);}
+.piece-preview .pb{color:var(--pb-c); text-shadow:0 0 8px var(--pb-g);}
+.piece-card .swatch-name{margin-top:6px; display:block;}
+
+/* ---------- SETTINGS ---------- */
+.settings-group{margin-top:22px;}
+.settings-group h3{
+  font-family:var(--font-display); font-size:15px; font-weight:600;
+  color:var(--gold); margin:0 0 10px; letter-spacing:0.03em;
+}
+.setting-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 4px; border-bottom:1px solid var(--hairline-soft); gap:12px;
+}
+.setting-row .lbl{font-size:14px; font-weight:500;}
+.setting-row .lbl small{display:block; color:var(--text-faint); font-size:11.5px; font-weight:400; margin-top:2px;}
+.switch{
+  width:42px; height:24px; border-radius:20px; background:#2a2d36; position:relative; cursor:pointer;
+  border:1px solid var(--hairline); flex:0 0 auto; transition:background .15s ease;
+}
+.switch.on{background:var(--emerald);}
+.switch::after{
+  content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  background:#f2f2f2; transition:left .15s ease;
+}
+.switch.on::after{left:20px;}
+.select-mini{
+  background:var(--panel-2); color:var(--text); border:1px solid var(--hairline);
+  border-radius:8px; padding:8px 10px; font-family:var(--font-body); font-size:13px;
+}
+
+/* ---------- PLAY SCREEN ---------- */
+#screen-play{padding:0 0 24px;}
+.play-wrap{
+  display:flex; flex-direction:column; gap:14px; padding:14px 14px 30px; max-width:1180px; margin:0 auto;
+}
+@media(min-width:980px){
+  .play-wrap{flex-direction:row; align-items:flex-start; gap:26px;}
+  .board-col{flex:0 0 auto;}
+  .panel-col{flex:1 1 320px; min-width:300px;}
+}
+
+.mode-tag{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10.5px; letter-spacing:0.14em; font-weight:700; color:var(--gold);
+  border:1px solid var(--hairline); padding:5px 10px; border-radius:20px; align-self:flex-start;
+  background:rgba(201,164,76,0.06);
+}
+
+.player-card{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--panel); border:1px solid var(--hairline-soft); border-radius:var(--radius-m);
+  padding:10px 14px; transition:border-color .2s ease, background .2s ease;
+}
+.player-card.active-turn{border-color:var(--gold); background:linear-gradient(180deg,#1c1710,#14110a);}
+.player-card .pinfo{display:flex; align-items:center; gap:10px;}
+.player-dot{width:11px;height:11px;border-radius:50%; border:1px solid rgba(255,255,255,0.25);}
+.player-dot.w{background:#f2ede0;}
+.player-dot.b{background:#1a1a1a;}
+.player-name{font-weight:600; font-size:13.5px;}
+.player-cap-row{display:flex; gap:2px; font-size:13px; min-height:16px; color:var(--text-dim); flex-wrap:wrap; max-width:120px;}
+.clock{
+  font-family:var(--font-display); font-variant-numeric:tabular-nums;
+  font-size:22px; font-weight:700; letter-spacing:0.02em; color:var(--text);
+  padding:4px 10px; border-radius:8px;
+}
+.clock.running{color:var(--gold); text-shadow:0 0 10px rgba(201,164,76,0.4);}
+.clock.low{color:var(--ruby); text-shadow:0 0 10px rgba(176,34,59,0.5);}
+
+.board-shell{
+  padding:14px; border-radius:var(--radius-l);
+  background:linear-gradient(160deg,#1a1d26,#0d0f15);
+  border:1px solid var(--hairline);
+  box-shadow:0 20px 50px rgba(0,0,0,0.45);
+  width:min(92vw, 560px);
+  margin:0 auto;
+}
+@media(min-width:980px){.board-shell{width:min(52vw, 560px);}}
+.board-frame{position:relative;}
+.coords-file{display:flex; justify-content:space-around; padding:4px 6px 0;}
+.coords-file span, .coords-rank span{color:var(--text-faint); font-size:10px; font-weight:600;}
+.coords-rank{position:absolute; top:0; bottom:0; left:-16px; display:flex; flex-direction:column; justify-content:space-around; padding:2px 0;}
+#board{
+  display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr);
+  width:100%; aspect-ratio:1; border-radius:6px; overflow:hidden;
+  border:2px solid rgba(0,0,0,0.5);
+}
+.sq{position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;}
+.sq.light{background:var(--sq-light);}
+.sq.dark{background:var(--sq-dark);}
+.sq .coord-tl{position:absolute; top:2px; left:3px; font-size:9px; font-weight:700; opacity:0.55;}
+.sq.light .coord-tl{color:var(--sq-dark);}
+.sq.dark .coord-tl{color:var(--sq-light);}
+.sq.selected{box-shadow:inset 0 0 0 3px var(--board-accent);}
+.sq.last-move{background-image:linear-gradient(rgba(212,175,55,0.32),rgba(212,175,55,0.32));}
+.sq.in-check{background-image:radial-gradient(circle, rgba(176,34,59,0.85), rgba(176,34,59,0.15) 70%);}
+.sq .dot{width:26%; height:26%; border-radius:50%; background:rgba(20,20,20,0.35); pointer-events:none;}
+.sq.dark .dot{background:rgba(255,255,255,0.35);}
+.sq .ring{position:absolute; inset:6%; border-radius:50%; border:3px solid rgba(20,20,20,0.35); pointer-events:none;}
+.sq.dark .ring{border-color:rgba(255,255,255,0.4);}
+.piece{
+  font-size:min(9.5vw,42px); line-height:1; pointer-events:none;
+  transition:transform .16s ease;
+}
+@media(min-width:980px){.piece{font-size:38px;}}
+.sq.anim .piece{transform:scale(1.12);}
+
+.panel-block{
+  background:var(--panel); border:1px solid var(--hairline-soft); border-radius:var(--radius-m);
+  padding:14px;
+}
+.panel-title{font-family:var(--font-display); font-size:13px; letter-spacing:0.08em; color:var(--gold); margin:0 0 10px; font-weight:600; text-transform:uppercase;}
+.status-line{
+  text-align:center; font-family:var(--font-display); font-weight:700; font-size:16px;
+  padding:10px; border-radius:10px; background:var(--panel-2); border:1px solid var(--hairline-soft);
+  letter-spacing:0.02em;
+}
+.status-line.check{color:var(--ruby); border-color:rgba(176,34,59,0.4);}
+.status-line.over{color:var(--gold); border-color:var(--hairline);}
+
+.controls-row{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+.ctrl-btn{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:var(--panel-2); border:1px solid var(--hairline-soft); border-radius:10px;
+  color:var(--text); padding:10px 4px; cursor:pointer; font-size:10.5px; font-weight:600;
+  letter-spacing:0.02em;
+}
+.ctrl-btn .ic{font-size:16px; color:var(--gold);}
+.ctrl-btn:active{transform:scale(0.96);}
+
+.movehist{max-height:220px; overflow-y:auto; font-size:13px;}
+.mh-row{display:grid; grid-template-columns:28px 1fr 1fr; gap:6px; padding:4px 2px; border-bottom:1px solid var(--hairline-soft);}
+.mh-num{color:var(--text-faint);}
+.mh-move{color:var(--text); font-variant-numeric:tabular-nums; cursor:default;}
+
+/* ---------- MODALS ---------- */
+.modal-veil{
+  position:fixed; inset:0; background:rgba(6,7,10,0.72); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-veil.show{display:flex;}
+.modal-card{
+  background:linear-gradient(180deg,#171A22,#0F1218);
+  border:1px solid var(--hairline); border-radius:var(--radius-l);
+  padding:26px 22px; width:100%; max-width:360px; text-align:center;
+  box-shadow:0 30px 70px rgba(0,0,0,0.6);
+}
+.modal-eyebrow{font-size:11px; letter-spacing:0.2em; color:var(--text-faint); font-weight:600;}
+.modal-title{font-family:var(--font-display); font-size:26px; font-weight:700; margin:8px 0 4px; color:var(--gold-bright);}
+.modal-sub{color:var(--text-dim); font-size:13px; margin-bottom:18px;}
+.promo-row{display:flex; gap:10px; justify-content:center; margin:14px 0 6px;}
+.promo-piece{
+  width:60px; height:60px; border-radius:12px; border:1px solid var(--hairline);
+  background:var(--panel-2); display:flex; align-items:center; justify-content:center;
+  font-size:32px; cursor:pointer;
+}
+.promo-piece:active{transform:scale(0.94);}
+.modal-actions{display:flex; flex-direction:column; gap:9px; margin-top:16px;}
+.modal-btn{
+  padding:12px; border-radius:10px; border:1px solid var(--hairline); background:var(--panel-2);
+  color:var(--text); font-weight:600; font-size:14px; cursor:pointer; font-family:var(--font-body);
+}
+.modal-btn.gold{background:linear-gradient(180deg,#e4c877,#c9a44c); color:#171208; border:none;}
+.modal-btn.ghost{background:transparent; border:1px solid var(--hairline-soft); color:var(--text-dim);}
+.tc-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:14px 0;}
+.tc-opt{
+  padding:10px 6px; border-radius:10px; border:1px solid var(--hairline-soft); background:var(--panel-2);
+  cursor:pointer; font-size:13.5px; font-weight:600;
+}
+.tc-opt.selected{border-color:var(--gold); background:rgba(201,164,76,0.12); color:var(--gold-bright);}
+
+/* ---------- HISTORY ---------- */
+.hist-item{
+  background:var(--panel); border:1px solid var(--hairline-soft); border-radius:var(--radius-m);
+  padding:13px 14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.hist-info .r1{font-weight:700; font-size:14px;}
+.hist-info .r2{color:var(--text-faint); font-size:12px; margin-top:2px;}
+.hist-actions{display:flex; gap:6px;}
+.hist-btn{
+  width:34px;height:34px;border-radius:8px; border:1px solid var(--hairline-soft); background:var(--panel-2);
+  color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;
+}
+.empty-state{text-align:center; padding:60px 20px; color:var(--text-faint);}
+.empty-state .ic{font-size:34px; color:var(--gold); margin-bottom:10px;}
+
+/* ---------- REPLAY ---------- */
+.replay-controls{display:flex; justify-content:center; gap:10px; margin-top:16px;}
+.rp-btn{
+  width:44px;height:44px;border-radius:50%; border:1px solid var(--hairline);
+  background:var(--panel-2); color:var(--gold); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:16px;
+}
+.rp-btn.big{width:54px;height:54px; background:linear-gradient(180deg,#e4c877,#c9a44c); color:#171208; border:none; font-size:19px;}
+
+.toast{
+  position:fixed; bottom:calc(24px + var(--safe-b)); left:50%; transform:translateX(-50%);
+  background:#171A22; border:1px solid var(--hairline); color:var(--text); padding:10px 18px;
+  border-radius:10px; font-size:13px; z-index:200; opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.toast.show{opacity:1;}
+
+.mute-fab{
+  position:fixed; top:calc(14px + var(--safe-t)); right:14px; z-index:50;
+  width:38px;height:38px;border-radius:50%; border:1px solid var(--hairline); background:rgba(18,21,29,0.85);
+  color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px;
+}
+</style>
+</head>
+<body>
+
+<button class="mute-fab" id="muteFab" title="Mute">🔊</button>
+
+<!-- HOME -->
+<section class="screen" id="screen-home">
+  <div class="crest">♛</div>
+  <h1 class="wordmark">LUXE CHESS</h1>
+  <div class="tagline">PREMIUM OFFLINE CHESS</div>
+  <div class="menu">
+    <div class="menu-btn primary" onclick="onPlayChess()"><span><span class="ic">♟</span>Play Chess</span><span class="arrow">→</span></div>
+    <div class="menu-btn" onclick="openNewGameModal()"><span><span class="ic">＋</span>New Game</span><span class="arrow">→</span></div>
+    <div class="menu-btn" id="continueBtn" disabled onclick="continueGame()"><span><span class="ic">↻</span>Continue Game</span><span class="arrow">→</span></div>
+    <div class="menu-btn" onclick="showScreen('screen-themes')"><span><span class="ic">◆</span>Themes</span><span class="arrow">→</span></div>
+    <div class="menu-btn" onclick="showScreen('screen-pieces')"><span><span class="ic">♞</span>Piece Collection</span><span class="arrow">→</span></div>
+    <div class="menu-btn" onclick="showScreen('screen-history')"><span><span class="ic">☰</span>Game History</span><span class="arrow">→</span></div>
+    <div class="menu-btn" onclick="showScreen('screen-settings')"><span><span class="ic">⚙</span>Settings</span><span class="arrow">→</span></div>
+  </div>
+  <div class="home-foot">ONE DEVICE · TWO PLAYERS · NO INTERNET REQUIRED</div>
+</section>
+
+<!-- PLAY -->
+<section class="screen" id="screen-play">
+  <div class="topbar">
+    <div class="back-btn" onclick="leavePlay()">‹</div>
+    <h2>Play</h2>
+    <div class="sub" id="tcLabel"></div>
+  </div>
+  <div class="play-wrap">
+    <div class="board-col">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span class="mode-tag">● LOCAL 2 PLAYER</span>
+      </div>
+      <div class="player-card" id="cardTop">
+        <div class="pinfo"><span class="player-dot b" id="dotTop"></span><span class="player-name" id="nameTop">Black</span></div>
+        <div class="player-cap-row" id="capTop"></div>
+        <div class="clock" id="clockTop">10:00</div>
+      </div>
+      <div class="board-shell" style="margin-top:10px;">
+        <div class="board-frame">
+          <div class="coords-rank" id="ranksLeft"></div>
+          <div id="board"></div>
+          <div class="coords-file" id="filesBottom"></div>
+        </div>
+      </div>
+      <div class="player-card" id="cardBottom" style="margin-top:10px;">
+        <div class="pinfo"><span class="player-dot w" id="dotBottom"></span><span class="player-name" id="nameBottom">White</span></div>
+        <div class="player-cap-row" id="capBottom"></div>
+        <div class="clock" id="clockBottom">10:00</div>
+      </div>
+    </div>
+    <div class="panel-col">
+      <div class="status-line" id="statusLine">WHITE TO MOVE</div>
+      <div class="panel-block" style="margin-top:12px;">
+        <div class="controls-row">
+          <div class="ctrl-btn" onclick="openNewGameModal()"><span class="ic">＋</span>New</div>
+          <div class="ctrl-btn" onclick="undoMove()"><span class="ic">↶</span>Undo</div>
+          <div class="ctrl-btn" onclick="flipBoard()"><span class="ic">⇅</span>Flip</div>
+          <div class="ctrl-btn" onclick="confirmResign()"><span class="ic">⚑</span>Resign</div>
+        </div>
+        <div class="controls-row" style="margin-top:8px;">
+          <div class="ctrl-btn" onclick="confirmDraw()" style="grid-column:span 2;"><span class="ic">½</span>Draw</div>
+          <div class="ctrl-btn" onclick="showScreen('screen-history')" style="grid-column:span 2;"><span class="ic">☰</span>History</div>
+        </div>
+      </div>
+      <div class="panel-block" style="margin-top:12px;">
+        <div class="panel-title">Move History</div>
+        <div class="movehist" id="moveHist"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THEMES -->
+<section class="screen" id="screen-themes">
+  <div class="topbar"><div class="back-btn" onclick="backFromSub()">‹</div><h2>Board Themes</h2></div>
+  <div class="page-pad"><div class="gallery-grid" id="themeGrid"></div></div>
+</section>
+
+<!-- PIECES -->
+<section class="screen" id="screen-pieces">
+  <div class="topbar"><div class="back-btn" onclick="backFromSub()">‹</div><h2>Piece Collection</h2></div>
+  <div class="page-pad"><div class="gallery-grid" id="pieceGrid"></div></div>
+</section>
+
+<!-- SETTINGS -->
+<section class="screen" id="screen-settings">
+  <div class="topbar"><div class="back-btn" onclick="backFromSub()">‹</div><h2>Settings</h2></div>
+  <div class="page-pad">
+    <div class="settings-group">
+      <h3>Board</h3>
+      <div class="setting-row"><div class="lbl">Show coordinates</div><div class="switch" id="sw-coords" onclick="toggleSetting('showCoordinates',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Show legal moves</div><div class="switch" id="sw-legal" onclick="toggleSetting('showLegalMoves',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Show last move</div><div class="switch" id="sw-last" onclick="toggleSetting('showLastMove',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Board animation</div><div class="switch" id="sw-anim" onclick="toggleSetting('boardAnimation',this)"></div></div>
+    </div>
+    <div class="settings-group">
+      <h3>Piece Set</h3>
+      <div class="setting-row" onclick="showScreen('screen-pieces')" style="cursor:pointer;">
+        <div class="lbl">Piece collection<small id="pieceSetName">—</small></div>
+        <div style="color:var(--gold);">→</div>
+      </div>
+    </div>
+    <div class="settings-group">
+      <h3>Sound</h3>
+      <div class="setting-row"><div class="lbl">Master sound</div><div class="switch" id="sw-soundMaster" onclick="toggleSetting('soundMaster',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Move sound</div><div class="switch" id="sw-soundMove" onclick="toggleSetting('soundMove',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Capture sound</div><div class="switch" id="sw-soundCapture" onclick="toggleSetting('soundCapture',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Check sound</div><div class="switch" id="sw-soundCheck" onclick="toggleSetting('soundCheck',this)"></div></div>
+      <div class="setting-row"><div class="lbl">Game-end sound</div><div class="switch" id="sw-soundGameEnd" onclick="toggleSetting('soundGameEnd',this)"></div></div>
+    </div>
+    <div class="settings-group">
+      <h3>Gameplay</h3>
+      <div class="setting-row">
+        <div class="lbl">Default time control</div>
+        <select class="select-mini" id="defaultTcSelect" onchange="setDefaultTc(this.value)"></select>
+      </div>
+      <div class="setting-row"><div class="lbl">Auto-save game<small>Keeps your game after closing the app</small></div><div class="switch" id="sw-autosave" onclick="toggleSetting('autoSave',this)"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HISTORY -->
+<section class="screen" id="screen-history">
+  <div class="topbar"><div class="back-btn" onclick="backFromSub()">‹</div><h2>Game History</h2></div>
+  <div class="page-pad" id="historyList"></div>
+</section>
+
+<!-- REPLAY -->
+<section class="screen" id="screen-replay">
+  <div class="topbar"><div class="back-btn" onclick="showScreen('screen-history')">‹</div><h2>Replay</h2><div class="sub" id="replayLabel"></div></div>
+  <div class="play-wrap">
+    <div class="board-col">
+      <div class="board-shell">
+        <div class="board-frame"><div id="boardReplay"></div></div>
+      </div>
+      <div class="replay-controls">
+        <div class="rp-btn" onclick="replayFirst()">⏮</div>
+        <div class="rp-btn" onclick="replayPrev()">◀</div>
+        <div class="rp-btn big" id="replayPlayBtn" onclick="replayTogglePlay()">▶</div>
+        <div class="rp-btn" onclick="replayNext()">▶</div>
+        <div class="rp-btn" onclick="replayLast()">⏭</div>
+      </div>
+    </div>
+    <div class="panel-col">
+      <div class="panel-block">
+        <div class="panel-title">Moves</div>
+        <div class="movehist" id="replayMoveHist"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODALS -->
+<div class="modal-veil" id="modalPromotion">
+  <div class="modal-card">
+    <div class="modal-eyebrow">PAWN PROMOTION</div>
+    <div class="modal-title">Choose a Piece</div>
+    <div class="promo-row" id="promoRow"></div>
+  </div>
+</div>
+
+<div class="modal-veil" id="modalResult">
+  <div class="modal-card">
+    <div class="modal-eyebrow" id="resEyebrow">GAME OVER</div>
+    <div class="modal-title" id="resTitle">Checkmate</div>
+    <div class="modal-sub" id="resSub">White wins the game</div>
+    <div class="modal-actions">
+      <div class="modal-btn gold" onclick="openNewGameModal(); closeModal('modalResult');">New Game</div>
+      <div class="modal-btn" onclick="rematch()">Rematch</div>
+      <div class="modal-btn" onclick="closeModal('modalResult'); showScreen('screen-play');">View Moves</div>
+      <div class="modal-btn ghost" onclick="closeModal('modalResult'); showScreen('screen-home');">Close</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-veil" id="modalNewGame">
+  <div class="modal-card">
+    <div class="modal-eyebrow">NEW GAME</div>
+    <div class="modal-title">Time Control</div>
+    <div class="modal-sub">Choose the clock for both players</div>
+    <div class="tc-grid" id="tcGrid"></div>
+    <div class="modal-actions">
+      <div class="modal-btn gold" onclick="startFromModal()">Start Game</div>
+      <div class="modal-btn ghost" onclick="closeModal('modalNewGame')">Cancel</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-veil" id="modalConfirm">
+  <div class="modal-card">
+    <div class="modal-eyebrow" id="confirmEyebrow">CONFIRM</div>
+    <div class="modal-title" id="confirmTitle">Are you sure?</div>
+    <div class="modal-actions">
+      <div class="modal-btn gold" id="confirmYes">Yes</div>
+      <div class="modal-btn ghost" onclick="closeModal('modalConfirm')">Cancel</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================= DATA ============================= */
+const THEMES=[
+ {id:'royal-gold',name:'Royal Gold',light:'#F0DFC0',dark:'#8B6A2E',accent:'#D4AF37'},
+ {id:'emerald',name:'Emerald',light:'#E8F3EA',dark:'#1F6B4A',accent:'#2E8B57'},
+ {id:'sapphire',name:'Sapphire',light:'#E6ECF7',dark:'#2A4A8A',accent:'#3B5FCC'},
+ {id:'ruby',name:'Ruby',light:'#F5E6E8',dark:'#7A1F2E',accent:'#B0223B'},
+ {id:'ice-glass',name:'Ice Glass',light:'#F0FAFF',dark:'#A9C9DA',accent:'#6FB8DB'},
+ {id:'obsidian',name:'Obsidian',light:'#3A3A42',dark:'#111114',accent:'#8B8B95'},
+ {id:'midnight',name:'Midnight',light:'#2C3454',dark:'#10122A',accent:'#4C5B9E'},
+ {id:'marble',name:'Marble',light:'#F5F3EE',dark:'#C6C1B8',accent:'#9A968C'},
+ {id:'walnut',name:'Walnut',light:'#D8B98C',dark:'#5A3A22',accent:'#8A5A32'},
+ {id:'classic-brown',name:'Classic Brown',light:'#EED9B6',dark:'#8B5A2B',accent:'#B07840'},
+ {id:'tournament-green',name:'Tournament Green',light:'#EEEED2',dark:'#769656',accent:'#5C8A3E'},
+ {id:'neon-cyber',name:'Neon Cyber',light:'#242438',dark:'#0D0D18',accent:'#00F5D4'},
+ {id:'ocean',name:'Ocean',light:'#DCEFF2',dark:'#1B5E76',accent:'#2C93B3'},
+ {id:'crimson',name:'Crimson',light:'#F2DEDE',dark:'#6E0F1A',accent:'#A3172A'},
+ {id:'sandstone',name:'Sandstone',light:'#EFE3CB',dark:'#C2A26B',accent:'#A6813F'},
+ {id:'platinum',name:'Platinum',light:'#F1F1F3',dark:'#B7B9C2',accent:'#8C8FA3'},
+];
+const PIECESETS=[
+ {id:'royal-gold',name:'Royal Gold',wc:'#FFF6DD',wg:'#D4AF37',bc:'#2B2109',bg:'#9C7A1E'},
+ {id:'platinum',name:'Platinum',wc:'#FDFDFD',wg:'#B9BAC1',bc:'#3A3A3F',bg:'#8D8F98'},
+ {id:'obsidian',name:'Obsidian',wc:'#E5E5EA',wg:'#6E6E76',bc:'#0A0A0C',bg:'#3D3D42'},
+ {id:'ruby-crown',name:'Ruby Crown',wc:'#FFE9EC',wg:'#B0223B',bc:'#3A0410',bg:'#7A1F2E'},
+ {id:'ice-glass',name:'Ice Glass',wc:'#F5FCFF',wg:'#6FB8DB',bc:'#25404A',bg:'#3E6E82'},
+ {id:'imperial-ivory',name:'Imperial Ivory',wc:'#FFFDF3',wg:'#D9CBA3',bc:'#463A22',bg:'#7C6A3F'},
+ {id:'velvet-black',name:'Velvet Black',wc:'#EDEDED',wg:'#5A5A5A',bc:'#050505',bg:'#2A2A2A'},
+ {id:'marble-king',name:'Marble King',wc:'#FBFBF9',wg:'#C9C4B8',bc:'#4B4842',bg:'#847F72'},
+ {id:'neon-cyan',name:'Neon Cyan',wc:'#E5FFFE',wg:'#00F5D4',bc:'#052422',bg:'#00A98E'},
+ {id:'blood-moon',name:'Blood Moon',wc:'#FFE3D6',wg:'#E0562B',bc:'#2A0A02',bg:'#7A2A10'},
+ {id:'golden-minimal',name:'Golden Minimal',wc:'#FFF9E8',wg:'#C9A44C',bc:'#2E2408',bg:'#8A6E20'},
+ {id:'silver-knight',name:'Silver Knight',wc:'#F7F7F9',wg:'#A6A9B4',bc:'#2C2E36',bg:'#5E616D'},
+ {id:'classic-staunton',name:'Classic Staunton',wc:'#FBF3E3',wg:'#C9A66B',bc:'#3A2A16',bg:'#6B4A26'},
+ {id:'modern-minimal',name:'Modern Minimal',wc:'#FFFFFF',wg:'#CCCCCC',bc:'#1A1A1A',bg:'#444444'},
+ {id:'gothic',name:'Gothic',wc:'#E9E2F5',wg:'#6A4E9E',bc:'#120A1E',bg:'#3B2960'},
+ {id:'crystal',name:'Crystal',wc:'#F0FBFF',wg:'#8FD9F0',bc:'#1A3A46',bg:'#3E7E92'},
+];
+const TIME_CONTROLS=[
+ {id:'1+0',label:'1 + 0',base:60,inc:0},{id:'2+1',label:'2 + 1',base:120,inc:1},
+ {id:'3+0',label:'3 + 0',base:180,inc:0},{id:'3+2',label:'3 + 2',base:180,inc:2},
+ {id:'5+0',label:'5 + 0',base:300,inc:0},{id:'5+3',label:'5 + 3',base:300,inc:3},
+ {id:'10+0',label:'10 + 0',base:600,inc:0},{id:'10+5',label:'10 + 5',base:600,inc:5},
+ {id:'15+10',label:'15 + 10',base:900,inc:10},{id:'30+0',label:'30 + 0',base:1800,inc:0},
+];
+const GLYPH={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'};
+const FILES=['a','b','c','d','e','f','g','h'];
+
+/* ============================= STATE ============================= */
+let game=new Chess();
+let boardFlipped=false;
+let selectedSq=null;
+let legalTargets=[];
+let lastMove=null;
+let capturedByWhite=[]; // black pieces captured
+let capturedByBlack=[]; // white pieces captured
+let pendingPromotion=null;
+let currentThemeId='royal-gold';
+let currentPieceSetId='royal-gold';
+let settings={showCoordinates:true,showLegalMoves:true,showLastMove:true,boardAnimation:true,defaultTimeControl:'10+0',autoSave:true,soundMaster:true,soundMove:true,soundCapture:true,soundCheck:true,soundGameEnd:true};
+let clock={white:600,black:600,inc:0,active:null,timerId:null,tcId:'10+0'};
+let gameOver=false;
+let historyStack=[]; // {white:'e4',black:'e5'} rows already built via game.history()
+let gamesHistory=[];
+let selectedTcModal='10+0';
+let prevScreen='screen-home';
+let audioCtx=null;
+
+/* ============================= STORAGE ============================= */
+function save(key,val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function load(key,fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+
+function persistCurrentGame(){
+  if(!settings.autoSave) return;
+  const data={
+    fen:game.fen(), history:game.history(), clockWhite:clock.white, clockBlack:clock.black,
+    tcId:clock.tcId, inc:clock.inc, active: clock.active, flipped:boardFlipped,
+    capturedByWhite, capturedByBlack, gameOver, startedAt: currentGameStartedAt
+  };
+  save('luxe_current_game', data);
+}
+function clearCurrentGame(){ localStorage.removeItem('luxe_current_game'); }
+
+let currentGameStartedAt=null;
+
+/* ============================= AUDIO ============================= */
+function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function tone(freq,dur,type,vol){
+  if(!settings.soundMaster) return;
+  ensureAudio(); if(!audioCtx) return;
+  try{
+    const t0=audioCtx.currentTime;
+    const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain();
+    osc.type=type||'sine'; osc.frequency.value=freq;
+    gain.gain.setValueAtTime(vol||0.08, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t0); osc.stop(t0+dur);
+  }catch(e){}
+}
+function sfxMove(){ if(settings.soundMove) tone(520,0.09,'triangle'); }
+function sfxCapture(){ if(settings.soundCapture) tone(300,0.12,'sawtooth',0.07); }
+function sfxCheck(){ if(settings.soundCheck){ tone(880,0.1,'square',0.06); setTimeout(()=>tone(660,0.12,'square',0.06),90); } }
+function sfxCastle(){ if(settings.soundMove){ tone(440,0.07,'triangle'); setTimeout(()=>tone(560,0.09,'triangle'),70); } }
+function sfxPromotion(){ tone(700,0.08,'sine'); setTimeout(()=>tone(900,0.12,'sine'),80); setTimeout(()=>tone(1100,0.14,'sine'),160); }
+function sfxEnd(){ if(settings.soundGameEnd){ tone(220,0.2,'sawtooth',0.08); setTimeout(()=>tone(160,0.3,'sawtooth',0.08),180); } }
+
+/* ============================= INIT ============================= */
+function initApp(){
+  settings=Object.assign(settings, load('luxe_settings', {}));
+  currentThemeId=load('luxe_theme','royal-gold');
+  currentPieceSetId=load('luxe_pieceset','royal-gold');
+  gamesHistory=load('luxe_games_history', []);
+  applyTheme(currentThemeId);
+  applyPieceSet(currentPieceSetId);
+  buildThemeGrid(); buildPieceGrid(); buildSettingsUI(); buildTcGrids();
+  const savedGame=load('luxe_current_game', null);
+  document.getElementById('continueBtn').removeAttribute('disabled');
+  if(!savedGame){ document.getElementById('continueBtn').setAttribute('disabled',''); }
+  window._savedGame=savedGame;
+  showScreen('screen-home');
+  document.getElementById('muteFab').onclick=()=>{
+    settings.soundMaster=!settings.soundMaster; save('luxe_settings',settings);
+    document.getElementById('muteFab').textContent=settings.soundMaster?'🔊':'🔇';
+    const sw=document.getElementById('sw-soundMaster'); if(sw) sw.classList.toggle('on',settings.soundMaster);
+  };
+  document.getElementById('muteFab').textContent=settings.soundMaster?'🔊':'🔇';
+}
+
+/* ============================= NAV ============================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function backFromSub(){ showScreen(prevScreen); }
+function onPlayChess(){
+  const saved=load('luxe_current_game', null);
+  if(saved && !saved.gameOver){ continueGame(); } else { openNewGameModal(); }
+}
+function leavePlay(){ persistCurrentGame(); showScreen('screen-home'); refreshContinueBtn(); }
+function refreshContinueBtn(){
+  const saved=load('luxe_current_game', null);
+  const btn=document.getElementById('continueBtn');
+  if(saved && !saved.gameOver){ btn.removeAttribute('disabled'); } else { btn.setAttribute('disabled',''); }
+}
+
+/* ============================= THEME / PIECES ============================= */
+function applyTheme(id){
+  const t=THEMES.find(x=>x.id===id)||THEMES[0];
+  const r=document.documentElement.style;
+  r.setProperty('--sq-light',t.light); r.setProperty('--sq-dark',t.dark); r.setProperty('--board-accent',t.accent);
+  currentThemeId=id;
+}
+function applyPieceSet(id){
+  const p=PIECESETS.find(x=>x.id===id)||PIECESETS[0];
+  const r=document.documentElement.style;
+  r.setProperty('--pc-white',p.wc); r.setProperty('--pc-white-glow',p.wg);
+  r.setProperty('--pc-black',p.bc); r.setProperty('--pc-black-glow',p.bg);
+  currentPieceSetId=id;
+  const nm=document.getElementById('pieceSetName'); if(nm) nm.textContent=p.name;
+}
+function buildThemeGrid(){
+  const grid=document.getElementById('themeGrid'); grid.innerHTML='';
+  THEMES.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='swatch-card'+(t.id===currentThemeId?' selected':'');
+    card.innerHTML=`<div class="swatch-board" style="--c-light:${t.light};--c-dark:${t.dark};">
+      ${Array.from({length:16}).map(()=>'<div></div>').join('')}
+    </div><div class="swatch-name">${t.name}</div>`;
+    card.onclick=()=>{ applyTheme(t.id); save('luxe_theme',t.id); buildThemeGrid(); showToast(t.name+' applied'); };
+    grid.appendChild(card);
+  });
+}
+function buildPieceGrid(){
+  const grid=document.getElementById('pieceGrid'); grid.innerHTML='';
+  PIECESETS.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='piece-card'+(p.id===currentPieceSetId?' selected':'');
+    card.innerHTML=`<div class="piece-preview" style="--pw-c:${p.wc};--pw-g:${p.wg};--pb-c:${p.bc};--pb-g:${p.bg};">
+      <span class="pw">${GLYPH.k}${GLYPH.q}${GLYPH.r}</span><span class="pb">${GLYPH.b}${GLYPH.n}${GLYPH.p}</span>
+    </div><span class="swatch-name">${p.name}</span>`;
+    card.onclick=()=>{ applyPieceSet(p.id); save('luxe_pieceset',p.id); buildPieceGrid(); buildSettingsUI(); showToast(p.name+' selected'); };
+    grid.appendChild(card);
+  });
+}
+
+/* ============================= SETTINGS UI ============================= */
+function buildSettingsUI(){
+  const map={showCoordinates:'sw-coords',showLegalMoves:'sw-legal',showLastMove:'sw-last',boardAnimation:'sw-anim',
+    soundMaster:'sw-soundMaster',soundMove:'sw-soundMove',soundCapture:'sw-soundCapture',soundCheck:'sw-soundCheck',soundGameEnd:'sw-soundGameEnd',
+    autoSave:'sw-autosave'};
+  Object.keys(map).forEach(k=>{ const el=document.getElementById(map[k]); if(el) el.classList.toggle('on', !!settings[k]); });
+  const sel=document.getElementById('defaultTcSelect'); sel.innerHTML='';
+  TIME_CONTROLS.forEach(tc=>{ const o=document.createElement('option'); o.value=tc.id; o.textContent=tc.label; sel.appendChild(o); });
+  sel.value=settings.defaultTimeControl;
+  const nm=document.getElementById('pieceSetName'); if(nm) nm.textContent=(PIECESETS.find(p=>p.id===currentPieceSetId)||{}).name||'';
+}
+function toggleSetting(key,el){
+  settings[key]=!settings[key]; el.classList.toggle('on', settings[key]); save('luxe_settings',settings);
+  if(key==='soundMaster') document.getElementById('muteFab').textContent=settings.soundMaster?'🔊':'🔇';
+}
+function setDefaultTc(v){ settings.defaultTimeControl=v; save('luxe_settings',settings); }
+
+/* ============================= NEW GAME MODAL ============================= */
+function buildTcGrids(){
+  const grid=document.getElementById('tcGrid'); grid.innerHTML='';
+  TIME_CONTROLS.forEach(tc=>{
+    const d=document.createElement('div');
+    d.className='tc-opt'+(tc.id===settings.defaultTimeControl?' selected':'');
+    d.textContent=tc.label;
+    d.onclick=()=>{ selectedTcModal=tc.id; document.querySelectorAll('#tcGrid .tc-opt').forEach(x=>x.classList.remove('selected')); d.classList.add('selected'); };
+    grid.appendChild(d);
+  });
+  selectedTcModal=settings.defaultTimeControl;
+}
+function openNewGameModal(){ buildTcGrids(); openModal('modalNewGame'); }
+function startFromModal(){ closeModal('modalNewGame'); startNewGame(selectedTcModal); showScreen('screen-play'); }
+
+function startNewGame(tcId){
+  const tc=TIME_CONTROLS.find(x=>x.id===tcId)||TIME_CONTROLS[6];
+  game=new Chess(); boardFlipped=false; selectedSq=null; legalTargets=[]; lastMove=null;
+  capturedByWhite=[]; capturedByBlack=[]; gameOver=false; currentGameStartedAt=Date.now();
+  clock={white:tc.base,black:tc.base,inc:tc.inc,active:'w',timerId:null,tcId:tc.id};
+  document.getElementById('tcLabel').textContent=tc.label;
+  stopClockTimer(); startClockTimer();
+  renderAll(); persistCurrentGame();
+}
+function continueGame(){
+  const saved=load('luxe_current_game', null);
+  if(!saved){ openNewGameModal(); return; }
+  game=new Chess(saved.fen); boardFlipped=!!saved.flipped;
+  capturedByWhite=saved.capturedByWhite||[]; capturedByBlack=saved.capturedByBlack||[];
+  gameOver=!!saved.gameOver; currentGameStartedAt=saved.startedAt||Date.now();
+  const tc=TIME_CONTROLS.find(x=>x.id===saved.tcId)||TIME_CONTROLS[6];
+  clock={white:saved.clockWhite, black:saved.clockBlack, inc: saved.inc!=null?saved.inc:tc.inc, active:saved.active, timerId:null, tcId:saved.tcId};
+  document.getElementById('tcLabel').textContent=tc.label;
+  const hist=game.history({verbose:true}); lastMove= hist.length? {from:hist[hist.length-1].from, to:hist[hist.length-1].to} : null;
+  stopClockTimer(); if(!gameOver) startClockTimer();
+  renderAll(); showScreen('screen-play');
+}
+function rematch(){ closeModal('modalResult'); startNewGame(clock.tcId); showScreen('screen-play'); }
+
+/* ============================= CLOCK ============================= */
+function fmtTime(sec){
+  sec=Math.max(0,Math.round(sec));
+  const m=Math.floor(sec/60), s=sec%60;
+  return m+':'+String(s).padStart(2,'0');
+}
+function startClockTimer(){
+  stopClockTimer();
+  clock.timerId=setInterval(()=>{
+    if(gameOver||!clock.active) return;
+    clock[clock.active==='w'?'white':'black']-=1;
+    if(clock[clock.active==='w'?'white':'black']<=0){
+      clock[clock.active==='w'?'white':'black']=0;
+      renderClocks();
+      endGame('timeout', clock.active==='w'?'black':'white', (clock.active==='w'?'White':'Black')+' ran out of time');
+      return;
+    }
+    renderClocks();
+  },1000);
+}
+function stopClockTimer(){ if(clock.timerId){ clearInterval(clock.timerId); clock.timerId=null; } }
+function switchClock(mover){
+  clock[mover==='w'?'white':'black']+=clock.inc;
+  clock.active = mover==='w' ? 'b':'w';
+}
+
+/* ============================= RENDER ============================= */
+function squareColor(file,rank){ return (file+rank)%2===0 ? 'dark':'light'; }
+function algebraic(fileIdx,rankIdx){ return FILES[fileIdx]+(rankIdx+1); }
+
+function renderAll(){ renderBoard(); renderClocks(); renderStatus(); renderMoveHistory(); renderCaptured(); renderPlayerCards(); }
+
+function renderBoard(){
+  const boardEl=document.getElementById('board');
+  boardEl.innerHTML='';
+  const pos=game.board(); // rank8 -> rank1, files a->h
+  let displayRows=[];
+  for(let r=0;r<8;r++) displayRows.push(pos[r]);
+  let order = boardFlipped ? [...Array(8).keys()] : [...Array(8).keys()];
+  // build 8x8 with rank8 at top by default (pos[0] is rank8)
+  let rankOrder = boardFlipped ? [...Array(8).keys()] : [...Array(8).keys()];
+  for(let rowIdx=0; rowIdx<8; rowIdx++){
+    let srcRow = boardFlipped ? pos[7-rowIdx] : pos[rowIdx]; // when flipped, show rank1 at top => reverse
+    let rankNum = boardFlipped ? (rowIdx+1) : (8-rowIdx);
+    for(let colIdx=0; colIdx<8; colIdx++){
+      let srcCol = boardFlipped ? (7-colIdx) : colIdx;
+      const cell = srcRow[srcCol];
+      const fileLetter = FILES[srcCol];
+      const sqName = fileLetter+rankNum;
+      const div=document.createElement('div');
+      const isLight = (FILES.indexOf(fileLetter)+rankNum)%2===1;
+      div.className='sq '+(isLight?'light':'dark');
+      div.dataset.sq=sqName;
+      if(settings.showCoordinates && (boardFlipped ? colIdx===7 : colIdx===0)){
+        const c=document.createElement('span'); c.className='coord-tl'; c.textContent=rankNum; div.appendChild(c);
+      }
+      if(selectedSq===sqName) div.classList.add('selected');
+      if(settings.showLastMove && lastMove && (lastMove.from===sqName || lastMove.to===sqName)) div.classList.add('last-move');
+      if(cell){
+        const isKing=cell.type==='k';
+        const inCheckHere = isKing && game.in_check() && cell.color===game.turn();
+        if(inCheckHere) div.classList.add('in-check');
+        const span=document.createElement('span');
+        span.className='piece';
+        span.style.color = cell.color==='w' ? 'var(--pc-white)' : 'var(--pc-black)';
+        span.style.textShadow = '0 0 6px ' + (cell.color==='w' ? 'var(--pc-white-glow)' : 'var(--pc-black-glow)');
+        span.textContent=GLYPH[cell.type];
+        div.appendChild(span);
+      }
+      if(settings.showLegalMoves && legalTargets.includes(sqName)){
+        const marker=document.createElement('div');
+        marker.className = cell ? 'ring' : 'dot';
+        div.appendChild(marker);
+      }
+      div.onclick=()=>onSquareClick(sqName);
+      boardEl.appendChild(div);
+    }
+  }
+  const filesRow=document.getElementById('filesBottom'); filesRow.innerHTML='';
+  const filesOrder = boardFlipped ? [...FILES].reverse() : FILES;
+  if(settings.showCoordinates){
+    filesOrder.forEach(f=>{ const s=document.createElement('span'); s.textContent=f; filesRow.appendChild(s); });
+  }
+}
+
+function renderClocks(){
+  const topId = boardFlipped? 'white':'black';
+  const topClock=document.getElementById('clockTop'), bottomClock=document.getElementById('clockBottom');
+  const topName=document.getElementById('nameTop'), bottomName=document.getElementById('nameBottom');
+  const topDot=document.getElementById('dotTop'), bottomDot=document.getElementById('dotBottom');
+  const cardTop=document.getElementById('cardTop'), cardBottom=document.getElementById('cardBottom');
+  if(boardFlipped){
+    topName.textContent='White'; topDot.className='player-dot w'; topClock.textContent=fmtTime(clock.white);
+    bottomName.textContent='Black'; bottomDot.className='player-dot b'; bottomClock.textContent=fmtTime(clock.black);
+    topClock.classList.toggle('running', clock.active==='w' && !gameOver);
+    bottomClock.classList.toggle('running', clock.active==='b' && !gameOver);
+    topClock.classList.toggle('low', clock.white<=20);
+    bottomClock.classList.toggle('low', clock.black<=20);
+    cardTop.classList.toggle('active-turn', clock.active==='w' && !gameOver);
+    cardBottom.classList.toggle('active-turn', clock.active==='b' && !gameOver);
+  }else{
+    topName.textContent='Black'; topDot.className='player-dot b'; topClock.textContent=fmtTime(clock.black);
+    bottomName.textContent='White'; bottomDot.className='player-dot w'; bottomClock.textContent=fmtTime(clock.white);
+    topClock.classList.toggle('running', clock.active==='b' && !gameOver);
+    bottomClock.classList.toggle('running', clock.active==='w' && !gameOver);
+    topClock.classList.toggle('low', clock.black<=20);
+    bottomClock.classList.toggle('low', clock.white<=20);
+    cardTop.classList.toggle('active-turn', clock.active==='b' && !gameOver);
+    cardBottom.classList.toggle('active-turn', clock.active==='w' && !gameOver);
+  }
+}
+function renderPlayerCards(){ /* names static; handled in renderClocks for flip-aware labels */ }
+
+function renderStatus(){
+  const el=document.getElementById('statusLine');
+  el.classList.remove('check','over');
+  if(gameOver){ el.classList.add('over'); return; } // text set by endGame
+  if(game.in_checkmate()){ el.textContent='CHECKMATE'; el.classList.add('over'); return; }
+  if(game.in_stalemate()){ el.textContent='STALEMATE'; el.classList.add('over'); return; }
+  if(game.in_draw()){ el.textContent='DRAW'; el.classList.add('over'); return; }
+  if(game.in_check()){ el.textContent=(game.turn()==='w'?'WHITE':'BLACK')+' IN CHECK'; el.classList.add('check'); return; }
+  el.textContent=(game.turn()==='w'?'WHITE':'BLACK')+' TO MOVE';
+}
+function renderMoveHistory(){
+  const el=document.getElementById('moveHist'); el.innerHTML='';
+  const h=game.history();
+  for(let i=0;i<h.length;i+=2){
+    const row=document.createElement('div'); row.className='mh-row';
+    row.innerHTML=`<span class="mh-num">${(i/2)+1}.</span><span class="mh-move">${h[i]||''}</span><span class="mh-move">${h[i+1]||''}</span>`;
+    el.appendChild(row);
+  }
+  el.scrollTop=el.scrollHeight;
+}
+function renderCaptured(){
+  const capW=document.getElementById('capBottom'); // default (not flipped): bottom = white; captured BY white shown at white's row
+  const capB=document.getElementById('capTop');
+  function styleGlyphs(arr, color){
+    return arr.map(t=>`<span style="color:${color==='w'?'var(--pc-white)':'var(--pc-black)'}">${GLYPH[t]}</span>`).join('');
+  }
+  const byWhiteEl = boardFlipped ? capTopEl() : capBottomEl();
+  const byBlackEl = boardFlipped ? capBottomEl() : capTopEl();
+  byWhiteEl.innerHTML = styleGlyphs(capturedByWhite,'b');
+  byBlackEl.innerHTML = styleGlyphs(capturedByBlack,'w');
+}
+function capTopEl(){ return document.getElementById('capTop'); }
+function capBottomEl(){ return document.getElementById('capBottom'); }
+
+/* ============================= MOVE LOGIC ============================= */
+function onSquareClick(sq){
+  if(gameOver) return;
+  const piece=game.get(sq);
+  if(selectedSq){
+    if(legalTargets.includes(sq)){
+      tryMove(selectedSq, sq);
+      return;
+    }
+    if(piece && piece.color===game.turn()){
+      selectedSq=sq; legalTargets=game.moves({square:sq,verbose:true}).map(m=>m.to);
+      renderBoard(); return;
+    }
+    selectedSq=null; legalTargets=[]; renderBoard(); return;
+  }
+  if(piece && piece.color===game.turn()){
+    selectedSq=sq; legalTargets=game.moves({square:sq,verbose:true}).map(m=>m.to);
+    renderBoard();
+  }
+}
+function tryMove(from,to){
+  const verboseMoves=game.moves({square:from,verbose:true});
+  const mv=verboseMoves.find(m=>m.to===to);
+  if(!mv) return;
+  if(mv.flags.indexOf('p')!==-1){
+    pendingPromotion={from,to};
+    openPromotionModal(mv.color);
+    return;
+  }
+  commitMove(from,to,null);
+}
+function commitMove(from,to,promotion){
+  const mover=game.turn();
+  const moveObj = promotion ? game.move({from,to,promotion}) : game.move({from,to});
+  if(!moveObj) return;
+  selectedSq=null; legalTargets=[]; lastMove={from,to};
+  if(moveObj.captured){
+    if(mover==='w') capturedByWhite.push(moveObj.captured); else capturedByBlack.push(moveObj.captured);
+  }
+  if(moveObj.flags.indexOf('k')!==-1 || moveObj.flags.indexOf('q')!==-1){ sfxCastle(); }
+  else if(promotion){ sfxPromotion(); }
+  else if(moveObj.captured){ sfxCapture(); }
+  else { sfxMove(); }
+  switchClock(mover);
+  renderAll(); persistCurrentGame();
+  if(game.in_checkmate()){
+    endGame('checkmate', mover==='w'?'white':'black', (mover==='w'?'White':'Black')+' wins by checkmate');
+  }else if(game.in_stalemate()){
+    endGame('stalemate', null, 'Draw by stalemate');
+  }else if(game.insufficient_material()){
+    endGame('draw', null, 'Draw by insufficient material');
+  }else if(game.in_threefold_repetition()){
+    endGame('draw', null, 'Draw by threefold repetition');
+  }else if(game.in_draw()){
+    endGame('draw', null, 'Draw by the 50-move rule');
+  }else if(game.in_check()){
+    sfxCheck();
+  }
+}
+function openPromotionModal(color){
+  const row=document.getElementById('promoRow'); row.innerHTML='';
+  ['q','r','b','n'].forEach(p=>{
+    const d=document.createElement('div'); d.className='promo-piece';
+    d.style.color = color==='w' ? 'var(--pc-white)' : 'var(--pc-black)';
+    d.style.textShadow = '0 0 8px ' + (color==='w'?'var(--pc-white-glow)':'var(--pc-black-glow)');
+    d.textContent=GLYPH[p];
+    d.onclick=()=>{ closeModal('modalPromotion'); const pp=pendingPromotion; pendingPromotion=null; commitMove(pp.from,pp.to,p); };
+    row.appendChild(d);
+  });
+  openModal('modalPromotion');
+}
+
+/* ============================= GAME CONTROLS ============================= */
+function undoMove(){
+  if(gameOver) return;
+  const undone=game.undo();
+  if(!undone) return;
+  if(undone.captured){
+    if(undone.color==='w') capturedByWhite.pop(); else capturedByBlack.pop();
+  }
+  clock.active = undone.color;
+  const h=game.history({verbose:true}); lastMove = h.length ? {from:h[h.length-1].from, to:h[h.length-1].to} : null;
+  selectedSq=null; legalTargets=[];
+  renderAll(); persistCurrentGame();
+}
+function flipBoard(){ boardFlipped=!boardFlipped; renderAll(); persistCurrentGame(); }
+function confirmResign(){
+  showConfirm('RESIGN', (game.turn()==='w'?'White':'Black')+' — are you sure you want to resign?', ()=>{
+    const resigner=game.turn(); closeModal('modalConfirm');
+    endGame('resignation', resigner==='w'?'black':'white', (resigner==='w'?'White':'Black')+' resigned');
+  });
+}
+function confirmDraw(){
+  showConfirm('DRAW OFFER', 'Both players agree to a draw?', ()=>{
+    closeModal('modalConfirm'); endGame('agreement', null, 'Draw by agreement');
+  });
+}
+function showConfirm(eyebrow,title,onYes){
+  document.getElementById('confirmEyebrow').textContent=eyebrow;
+  document.getElementById('confirmTitle').textContent=title;
+  const btn=document.getElementById('confirmYes');
+  btn.onclick=onYes;
+  openModal('modalConfirm');
+}
+
+function endGame(reason,winner,subtitle){
+  gameOver=true; stopClockTimer(); sfxEnd();
+  renderStatus();
+  const titleEl=document.getElementById('resTitle'), subEl=document.getElementById('resSub'), eyebrow=document.getElementById('resEyebrow');
+  let title = reason==='checkmate' ? 'Checkmate' : reason==='timeout' ? 'Time Out' : reason==='stalemate' ? 'Stalemate' : reason==='resignation' ? 'Resignation' : 'Draw';
+  eyebrow.textContent = winner ? (winner==='white'?'WHITE WINS':'BLACK WINS') : 'DRAW';
+  titleEl.textContent=title;
+  subEl.textContent=subtitle;
+  document.getElementById('statusLine').textContent = winner ? (title.toUpperCase()) : title.toUpperCase();
+  openModal('modalResult');
+  // save to history
+  const tc=TIME_CONTROLS.find(x=>x.id===clock.tcId);
+  const entry={
+    id: 'g'+Date.now(), date: new Date().toISOString(), result: subtitle,
+    winner: winner, moves: game.history(), timeControl: tc?tc.label:'', reason
+  };
+  gamesHistory.unshift(entry);
+  if(gamesHistory.length>200) gamesHistory.length=200;
+  save('luxe_games_history', gamesHistory);
+  save('luxe_current_game', Object.assign({}, load('luxe_current_game',{}), {gameOver:true}));
+  refreshContinueBtn();
+}
+
+/* ============================= MODAL HELPERS ============================= */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._toastTimer); window._toastTimer=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* screen entry tracking for back buttons on Themes/Pieces/Settings/History */
+['screen-themes','screen-pieces','screen-settings','screen-history'].forEach(id=>{});
+const _origShowScreen=showScreen;
+showScreen=function(id){
+  if(['screen-themes','screen-pieces','screen-settings','screen-history'].includes(id)){
+    const active=document.querySelector('.screen.active');
+    if(active && active.id!==id) prevScreen = active.id==='screen-play' ? 'screen-play' : 'screen-home';
+  }
+  _origShowScreen(id);
+};
+
+/* ============================= HISTORY SCREEN ============================= */
+function renderHistoryList(){
+  const el=document.getElementById('historyList');
+  if(!gamesHistory.length){
+    el.innerHTML=`<div class="empty-state"><div class="ic">♜</div>No games played yet.<br>Finish a game to see it here.</div>`;
+    return;
+  }
+  el.innerHTML='';
+  gamesHistory.forEach(g=>{
+    const d=new Date(g.date);
+    const item=document.createElement('div'); item.className='hist-item';
+    item.innerHTML=`<div class="hist-info">
+        <div class="r1">${g.result}</div>
+        <div class="r2">${d.toLocaleDateString()} · ${g.moves.length} moves · ${g.timeControl}</div>
+      </div>
+      <div class="hist-actions">
+        <div class="hist-btn" title="Replay">▶</div>
+        <div class="hist-btn" title="Delete">✕</div>
+      </div>`;
+    const btns=item.querySelectorAll('.hist-btn');
+    btns[0].onclick=()=>openReplay(g);
+    btns[1].onclick=()=>{ gamesHistory=gamesHistory.filter(x=>x.id!==g.id); save('luxe_games_history',gamesHistory); renderHistoryList(); };
+    el.appendChild(item);
+  });
+}
+const _origShowScreen2=showScreen;
+showScreen=function(id){ if(id==='screen-history') renderHistoryList(); _origShowScreen2(id); };
+
+/* ============================= REPLAY ============================= */
+let replayGame=null, replayMoves=[], replayIndex=0, replayTimer=null;
+function openReplay(entry){
+  replayMoves=entry.moves; replayIndex=0; replayGame=new Chess();
+  document.getElementById('replayLabel').textContent=entry.result+' · '+entry.timeControl;
+  renderReplayMoveHist();
+  renderReplayBoard();
+  showScreen('screen-replay');
+}
+function renderReplayBoard(){
+  const boardEl=document.getElementById('boardReplay');
+  boardEl.style.display='grid'; boardEl.style.gridTemplateColumns='repeat(8,1fr)'; boardEl.style.gridTemplateRows='repeat(8,1fr)';
+  boardEl.style.width='100%'; boardEl.style.aspectRatio='1'; boardEl.style.borderRadius='6px'; boardEl.style.overflow='hidden';
+  boardEl.innerHTML='';
+  const pos=replayGame.board();
+  for(let rowIdx=0; rowIdx<8; rowIdx++){
+    const srcRow=pos[rowIdx]; const rankNum=8-rowIdx;
+    for(let colIdx=0; colIdx<8; colIdx++){
+      const cell=srcRow[colIdx]; const fileLetter=FILES[colIdx];
+      const isLight=(colIdx+rankNum)%2===1;
+      const div=document.createElement('div');
+      div.className='sq '+(isLight?'light':'dark');
+      if(cell){
+        const span=document.createElement('span'); span.className='piece';
+        span.style.color = cell.color==='w' ? 'var(--pc-white)' : 'var(--pc-black)';
+        span.style.textShadow = '0 0 6px ' + (cell.color==='w' ? 'var(--pc-white-glow)' : 'var(--pc-black-glow)');
+        span.textContent=GLYPH[cell.type]; div.appendChild(span);
+      }
+      boardEl.appendChild(div);
+    }
+  }
+}
+function renderReplayMoveHist(){
+  const el=document.getElementById('replayMoveHist'); el.innerHTML='';
+  for(let i=0;i<replayMoves.length;i+=2){
+    const row=document.createElement('div'); row.className='mh-row';
+    const wActive = i===replayIndex-1, bActive = i+1===replayIndex-1;
+    row.innerHTML=`<span class="mh-num">${(i/2)+1}.</span><span class="mh-move" style="${wActive?'color:var(--gold);font-weight:700;':''}">${replayMoves[i]||''}</span><span class="mh-move" style="${bActive?'color:var(--gold);font-weight:700;':''}">${replayMoves[i+1]||''}</span>`;
+    el.appendChild(row);
+  }
+}
+function replayGoTo(idx){
+  idx=Math.max(0,Math.min(replayMoves.length, idx));
+  replayGame=new Chess();
+  for(let i=0;i<idx;i++) replayGame.move(replayMoves[i]);
+  replayIndex=idx; renderReplayBoard(); renderReplayMoveHist();
+}
+function replayFirst(){ replayPause(); replayGoTo(0); }
+function replayPrev(){ replayPause(); replayGoTo(replayIndex-1); }
+function replayNext(){ replayPause(); replayGoTo(replayIndex+1); }
+function replayLast(){ replayPause(); replayGoTo(replayMoves.length); }
+function replayTogglePlay(){
+  const btn=document.getElementById('replayPlayBtn');
+  if(replayTimer){ replayPause(); return; }
+  if(replayIndex>=replayMoves.length) replayGoTo(0);
+  btn.textContent='⏸';
+  replayTimer=setInterval(()=>{
+    if(replayIndex>=replayMoves.length){ replayPause(); return; }
+    replayGoTo(replayIndex+1);
+  },900);
+}
+function replayPause(){ if(replayTimer){ clearInterval(replayTimer); replayTimer=null; } document.getElementById('replayPlayBtn').textContent='▶'; }
+
+/* ============================= BOOT ============================= */
+window.addEventListener('DOMContentLoaded', initApp);
+window.addEventListener('beforeunload', ()=>{ if(document.getElementById('screen-play').classList.contains('active')) persistCurrentGame(); });
+</script>
+</body>
+</html>
